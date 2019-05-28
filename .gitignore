@@ -1,2 +1,6 @@
 #folder
 env
+__pycache__
+#file
+*.swp
+*.sqlite

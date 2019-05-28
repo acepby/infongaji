@@ -53,8 +53,8 @@ def draw_text(text,x=100,y=80):
 	for line in lines:
 		draw.text((x,y),line,fill=color,font=font)
 		y = y +line_height
-	print("saving ..")
-	img.save('poster.png',optimize=True)
+	#print("saving ..")
+	#img.save('poster.png',optimize=True)
 def setColor(clr):
 	color = clr
 	return color
@@ -65,7 +65,7 @@ def setFont(size):
 	return font
 
 def simbolfont(size):
-	font_file_path = 'Symbola.ttf'
+	font_file_path = 'Symbola.ttf' #'OpenSansEmoji.ttf'  #'Symbola.ttf'
 	font =ImageFont.truetype(font_file_path,size=size,encoding="unic")
 	return font
 
@@ -121,7 +121,7 @@ def create_banner(content) :
 	setContent(agW,draw,(100,320),materi,red,setFont(48))
 	
 	#simbol ustadz
-	draw.text((530,580),emoji.emojize(":man_with_turban:",use_aliases=True),fill=red,font=simbolfont(48))
+	draw.text((525,580),emoji.emojize(":man_with_turban:",use_aliases=True),fill=red,font=simbolfont(48))
 	#ustadz
 	ustFont = setFont(36)
 	ustLines = text_wrap(ustadz,ustFont,image_size[0]-540)
@@ -134,15 +134,16 @@ def create_banner(content) :
 		draw.text((ustX,ustY),ust,fill=red,font=ustFont)
 		ustY = ustY+ustLine_h
 	#waktu
-	draw.text((530,650),emoji.emojize(":date:",use_aliases=True),fill=red,font=simbolfont(48))
+	draw.text((525,650),emoji.emojize(":date:",use_aliases=True),fill=red,font=simbolfont(48))
 	setContent(ustW,draw,(580,650),cal,red,setFont(36))
-	draw.text((530,730),emoji.emojize(":alarm_clock:",use_aliases=True),fill=red,font=simbolfont(48))
+	draw.text((525,730),emoji.emojize(':clock8:',use_aliases=True),fill=red,font=simbolfont(48))
 	setContent(ustW,draw,(580,730),wkt,red,setFont(36))
 	#tempat
-	draw.text((530,800),emoji.emojize(":office:",use_aliases=True),fill=red,font=simbolfont(48))
+	draw.text((525,800),emoji.emojize(':mosque:',use_aliases=True),fill=red,font=simbolfont(48))
+	#draw.text((525,800),'\U0001f54c',fill=red,font=simbolfont(48))
 	setContent(ustW,draw,(580,800),tmpt,red,setFont(36))
 	#host
-	draw.text((530,1030),emoji.emojize("::",use_aliases=True),fill=red,font=simbolfont(36))
+	draw.text((525,1030),emoji.emojize("::",use_aliases=True),fill=red,font=simbolfont(36))
 	setContent(ustW,draw,(580,1030),host,red,setFont(24))
 	#cp
 	print('saving...')
