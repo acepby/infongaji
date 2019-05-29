@@ -35,8 +35,24 @@ class DBHelper:
 		stmt = "SELECT agenda,pembicara,materi FROM ngaji WHERE owner = (?)"
 		args = (owner, )
 		return [x[0] for x in self.conn.execute(stmt, args)]
+
+	def get_detail(self,id):
+		stmt ="SELECT agenda,materi,pembicara,tanggal,waktu,lokasi,(lat||','||lon) as latlon,host FROM ngaji WHERE id = (?)"
+		args = (id,)
+		data = self.conn.execute(stmt,args)
+		#print(data.description)
+		res = {}
+		colname = [d[0] for d in data.description]
+		#print(data.fetchone())
+		for i,r in enumerate(data.fetchone()):
+			#print(i,r)
+			res[colname[i]] = r
+		#print(res)
+		#result = [dict(zip(colname,r)) for r in data.fetchall()]
+		return res
+
 	def get_sepekan(self):
-		stmt = "SELECT id,agenda FROM ngaji WHERE tanggal NOT NULL  AND (strftime('%W',tanggal)=strftime('%W','now'))"
+		stmt = "SELECT id,agenda,host FROM ngaji WHERE tanggal NOT NULL  AND (strftime('%W',tanggal)=strftime('%W','now'))"
 		data = self.conn.execute(stmt)
 		all = data.fetchall()
 		if not all:
