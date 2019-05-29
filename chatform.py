@@ -21,13 +21,17 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton,ParseMode,ReplyKeyboard
 from telegram import InlineKeyboardButton,InlineKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
-
+from dotenv import load_dotenv,find_dotenv
+from os import getenv
 import logging
 import emoji
 import datetime
 from dbhelper import DBHelper
 
 db = DBHelper()
+load_dotenv(find_dotenv())
+telegram_token = getenv('TELEGRAM_TOKEN')
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -279,7 +283,7 @@ def error(bot, update, error):
 
 def main():
     # Create the Updater and pass it your bot's token.
-    updater = Updater("600359159:AAEySTHVWGkKRdpnLM2uO7iMS2jdCtg7WfY")
+    updater = Updater(telegram_token)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
