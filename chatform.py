@@ -190,7 +190,7 @@ def lokasi_terdekat(bot,update):
        for i in info:
            print(i)
            buttons.append(
-           [InlineKeyboardButton(text= '{}, {}'.format(i[1],i[2]),callback_data= i[0])]
+           [InlineKeyboardButton(text= '{}, {} ({}Km)'.format(i[1],i[2],i[3]),callback_data= i[0])]
            )
        keyboard = InlineKeyboardMarkup(buttons)
        update.message.reply_text('Berikut Lokasi Terdekat: ',reply_markup = keyboard)
