@@ -287,6 +287,7 @@ def done(bot, update, user_data):
                               "*Siapkan Infaq Terbaik Anda!*".format(facts_to_str(user_data)),parse_mode=ParseMode.MARKDOWN)
     simpan_data(userid,user_data) 
     update.message.reply_text("Info kajianmu udah disimpan, terima kasih {}".format(username))
+    update.message.reply_text("Untuk menambahkan data baru dan kembali ke menu awal sila ketik /start")
 
     #update.message.reply_text("Info kajianmu gagal disimpan, mohon diulang lagi /start terima kasih {}".format(username))
     user_data.clear()
