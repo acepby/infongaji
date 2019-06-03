@@ -1,4 +1,5 @@
 import sqlite3
+from jaraklokasi import jarak,bounding
 
 
 class DBHelper:
@@ -11,6 +12,7 @@ class DBHelper:
 		tblstmt = "CREATE TABLE IF NOT EXISTS ngaji ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, agenda text,pembicara text,materi text,lokasi text,hari text,tanggal text,waktu text,host text,lat text,lon text,owner text )"
 		itemidx = "CREATE INDEX IF NOT EXISTS ngajiIndex ON ngaji (id ASC)" 
 		ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON ngaji (owner ASC)"
+		pointidx = "CREATE INDEX IF NOT EXISTS pointIndex ON ngaji (lat,lon)"
 		self.conn.execute(tblstmt)
 		self.conn.execute(itemidx)
 		self.conn.execute(ownidx)
@@ -52,10 +54,36 @@ class DBHelper:
 		return res
 
 	def get_sepekan(self):
-		stmt = "SELECT id,agenda,host FROM ngaji WHERE tanggal NOT NULL  AND (strftime('%W',tanggal)=strftime('%W','now'))"
+		stmt = "SELECT id,agenda,host FROM ngaji WHERE tanggal NOT NULL  AND (strftime('%W',tanggal)=strftime('%W','now')) ORDER BY tanggal ASC"
 		data = self.conn.execute(stmt)
 		all = data.fetchall()
 		if not all:
-			print("data tidak ditemukan")
+			return None #"data tidak ditemukan"
 		else : 
 			return all
+
+	def get_nearest(self,lokasi,rad):
+		around = bounding(lokasi,rad)
+		print(around)
+		self.conn.create_function('jarak',4,jarak)
+		stmt = ("select id,agenda,host,jarak(:slat,:slon,CAST(lat as real),CAST(lon as real)) as D from "
+			"(SELECT id,agenda,host,lat,lon FROM ngaji "
+			"WHERE lat BETWEEN :minlat AND :maxlat AND lon BETWEEN :minlon AND :maxlon "
+			"AND (strftime('%W',tanggal)=strftime('%W','now'))) as FirstCut"
+			" WHERE jarak(:slat,:slon,CAST(lat as real),CAST(lon as real)) < :rad ORDER BY D")
+		#.format(lokasi)) #,around[0],around[1],around[2],around[3],lokasi,rad))
+		#my = "SELECT id,agenda,host,lat,lon from ngaji where lat between :minlat AND :maxlat AND lon between :minlon AND :maxlon" #.format(around[0],around[1],around[2],around[3])  
+		par ={'slat':lokasi[0],'slon':lokasi[1],'rad':rad,'minlat':around[0],'maxlat':around[1],'minlon':around[3],'maxlon':around[2]}
+		#print(par[0])
+		#print(stmt)
+		#test = "select agenda from ngaji order by (({}-lat)*({}-lat)) + (({}-lon)*({}-lon)) ASC".format(lokasi[0],lokasi[0],lokasi[1],lokasi[1])
+		#print(test)
+		sqlite3.enable_callback_tracebacks(True)
+		data = self.conn.execute(stmt,par)
+
+		all = data.fetchall()
+		#print(all)
+		if not all:
+			return  None #"tidak ada lokasi terdekat"
+		else :
+			return all 

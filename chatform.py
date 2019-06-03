@@ -133,7 +133,7 @@ def kajian_text(data):
            ngaji.append(emojiFormat(key,value))
         else :
            pass
-    #print(ngaji)
+    print(ngaji)
     return "\n".join(ngaji).join(['\n', '\n'])
 
 def check_data(key,array):
@@ -159,18 +159,43 @@ def simpan_data(userid,user_data):
       pass
 
 def start(bot, update):
-    reply_keyboard = [['Tambah Agenda'],['Lihat Agenda']]
+    location_kb = KeyboardButton(text="Lokasi Terdekat",  request_location=True)
+    reply_keyboard = [['Tambah Agenda'],['Lihat Agenda'],[location_kb]]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
     greating = ("Assalamu'alaikum {}! Selamat datang di info ngajimu \n" 
                 "Bot ini adalah untuk membuat dan melihat jadwal kajian \n"
                 "Untuk menambah agenda silakan pilih *[Tambah Agenda]* \n" 
-                "Untuk melihat agenda yang sudah tersimpan pilih *[Lihat Agenda]*".format(update.message.from_user.username))
+                "Untuk melihat agenda yang sudah tersimpan pilih *[Lihat Agenda]*"
+                "Untuk melihat lokasi terdekat pilih *[Lokasi Terdekat]* ".format(update.message.from_user.username))
 
-    update.message.reply_text(greating, parse_mode=ParseMode.MARKDOWN,
-        reply_markup=markup)
+    update.message.reply_text(greating, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
 
     return CHOOSING
+
+def lokasi_terdekat(bot,update):
+    user = update.message.from_user
+    user_location = update.message.location
+    chat_id = update.message.chat_id
+    mylokasi=(user_location.latitude,user_location.longitude)
+    buttons = []
+    #update.message.reply_text("Lihat Agenda dalam sepekan ini :\n")
+    #print(update.message.text)
+    info = db.get_nearest(mylokasi,15)
+    if not info: 
+       print("tidak ada agenda")
+       update.message.reply_text("Belum ada agenda pekan ini")
+       pass
+    else :
+       for i in info:
+           print(i)
+           buttons.append(
+           [InlineKeyboardButton(text= '{}, {}'.format(i[1],i[2]),callback_data= i[0])]
+           )
+       keyboard = InlineKeyboardMarkup(buttons)
+       update.message.reply_text('Berikut Lokasi Terdekat: ',reply_markup = keyboard)
+    return DETAIL_CHOICE
+
 
 def info_add(bot,update):
     greating = "Hi {}! Adakah info kajian yang akan diumumkan? \n tambahkan agendamu dengan memilih tombol yang ada".format(update.message.from_user.username)
@@ -182,15 +207,7 @@ def info_add(bot,update):
 
 def lihat_info(bot,update):
     #print("pilih lihat agenda")
-    '''
-    keyboard = [[InlineKeyboardButton("Option 1", callback_data='1'),
-                 InlineKeyboardButton("Option 2", callback_data='2')],
-
-                [InlineKeyboardButton("Option 3", callback_data='3')]]
-
-    reply_markup = InlineKeyboardMarkup(keyboard) '''
     buttons = []
-
     update.message.reply_text("Lihat Agenda dalam sepekan ini :\n")
     #print(update.message.text)
     info = db.get_sepekan()
@@ -214,7 +231,7 @@ def detail(bot,update):
     #print(latlon)
     #query.edit_message_text(text="Kajian : {}".format(detail))
     query.message.reply_text(text ="Kajian : {}"
-                                    "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN,reply_markup=markup)
+                                    "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
     bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
     return DETAIL_CHOICE
 
@@ -309,22 +326,33 @@ def main():
                                     lihat_info),
                        RegexHandler('^Tambah Agenda$',
                                     info_add),
+                       MessageHandler(Filters.location,
+                                     lokasi_terdekat),
+                       CommandHandler('start',start),
                        ],
 
             TYPING_CHOICE: [MessageHandler(Filters.text,
                                            regular_choice,
                                            pass_user_data=True),
+                            CommandHandler('start',start),
                             ],
 
             TYPING_REPLY: [MessageHandler(Filters.text,
                                           received_information,
                                           pass_user_data=True),
+                           CommandHandler('start',start),
                            ],
             LOCATION_CHOICE: [MessageHandler(Filters.location,
                                             received_information,
                                             pass_user_data=True)
                             ],
-            DETAIL_CHOICE:[CallbackQueryHandler(detail),CommandHandler('start',start)],
+            DETAIL_CHOICE:[CallbackQueryHandler(detail),CommandHandler('start',start),
+                           RegexHandler('^Lihat Agenda$',
+                                           lihat_info),
+                           RegexHandler('^Tambah Agenda$',
+                                    info_add),
+                           MessageHandler(Filters.location,lokasi_terdekat),
+                          ],
         },
 
         fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
