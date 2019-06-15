@@ -54,7 +54,7 @@ class DBHelper:
 		return res
 
 	def get_sepekan(self):
-		stmt = "SELECT id,agenda,host FROM ngaji WHERE tanggal NOT NULL  AND (strftime('%W',tanggal)=strftime('%W','now')) ORDER BY tanggal ASC"
+		stmt = "SELECT id,agenda,host FROM ngaji WHERE tanggal BETWEEN date('now','start of day') AND date('now','+7 days') ORDER BY tanggal ASC"
 		data = self.conn.execute(stmt)
 		all = data.fetchall()
 		if not all:
@@ -69,7 +69,7 @@ class DBHelper:
 		stmt = ("select id,agenda,host,jarak(:slat,:slon,CAST(lat as real),CAST(lon as real)) as D from "
 			"(SELECT id,agenda,host,lat,lon FROM ngaji "
 			"WHERE lat BETWEEN :minlat AND :maxlat AND lon BETWEEN :minlon AND :maxlon "
-			"AND (strftime('%W',tanggal)=strftime('%W','now'))) as FirstCut"
+			"AND tanggal BETWEEN date('now','start of day') AND date('now','+7 days')) as FirstCut"
 			" WHERE jarak(:slat,:slon,CAST(lat as real),CAST(lon as real)) < :rad ORDER BY D")
 		#.format(lokasi)) #,around[0],around[1],around[2],around[3],lokasi,rad))
 		#my = "SELECT id,agenda,host,lat,lon from ngaji where lat between :minlat AND :maxlat AND lon between :minlon AND :maxlon" #.format(around[0],around[1],around[2],around[3])  
