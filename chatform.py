@@ -152,7 +152,10 @@ def simpan_data(userid,user_data):
        tanggal = get_hari(check_data('Tanggal',user_data))
        waktu = check_data('Waktu',user_data)
        tempat = check_data('Tempat',user_data)
-       latlon = check_data('Peta Lokasi',user_data)
+       if check_data('Peta Lokasi',user_data):
+           latlon = check_data('Peta Lokasi',user_data)
+       else :
+           latlon =[0,0] 
        host = check_data('Penyelenggara',user_data)
        return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon[0],latlon[1],user_id) 
     else :
@@ -232,7 +235,8 @@ def detail(bot,update):
     #query.edit_message_text(text="Kajian : {}".format(detail))
     query.message.reply_text(text ="Kajian : {}"
                                     "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
-    bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
+    if latlon[0] != '0' and latlon[1] !='0' :
+       bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
     return DETAIL_CHOICE
 
 def regular_choice(bot, update, user_data):
