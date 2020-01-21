@@ -99,11 +99,19 @@ def tombol(text):
 def get_hari(text):
     if text:
        hari = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad']
-       tgl = datetime.datetime.strptime(text,'%d-%m-%Y').strftime('%Y-%m-%d')
-       wd = datetime.datetime.strptime(tgl,'%Y-%m-%d').weekday()
-       return  (hari[wd],tgl)
+       try :
+         tgl = datetime.datetime.strptime(text,'%d-%m-%Y').strftime('%Y-%m-%d')
+         wd = datetime.datetime.strptime(tgl,'%Y-%m-%d').weekday()
+         tanggalnya = '{},{}'.format(hari[wd],tgl)
+         return tanggalnya
+       except Exception:
+         update.message.reply_text('tanggalnya salah')
+         #raise ValueError('data tanggal salah')
+         pass
+       #return  (hari[wd],tgl)
     else :
-       return ''
+       #return 'format salah'
+       pass
 
 def date2day(text):
     if text:
@@ -133,7 +141,7 @@ def kajian_text(data):
            ngaji.append(emojiFormat(key,value))
         else :
            pass
-    print(ngaji)
+    #print(ngaji)
     return "\n".join(ngaji).join(['\n', '\n'])
 
 def check_data(key,array):
@@ -155,10 +163,12 @@ def simpan_data(userid,user_data):
        if check_data('Peta Lokasi',user_data):
            latlon = check_data('Peta Lokasi',user_data)
        else :
-           latlon =[0,0] 
+           latlon ='' #[0,0] 
        host = check_data('Penyelenggara',user_data)
-       return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon[0],latlon[1],user_id) 
+       return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon,latlon,user_id) 
     else :
+      update.message.reply_text("Info kajianmu tidak dapat disimpan, diulang ya {}".format(username))
+      update.message.reply_text("kembali ke menu awal sila ketik /start")
       pass
 
 def start(bot, update):
@@ -230,12 +240,13 @@ def lihat_info(bot,update):
 def detail(bot,update):
     query = update.callback_query
     detail = db.get_detail(query.data)
-    latlon=detail['latlon'].split(',')
+    #latlon=detail['latlon'].split(',')
     #print(latlon)
     #query.edit_message_text(text="Kajian : {}".format(detail))
     query.message.reply_text(text ="Kajian : {}"
                                     "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
-    if latlon[0] != '0' and latlon[1] !='0' :
+    if detail['latlon'] != '':
+       latlon = detail['latlon'].split(',')
        bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
     return DETAIL_CHOICE
 
@@ -260,7 +271,7 @@ def custom_choice(bot, update):
 
 
 def received_information(bot, update, user_data):
-    #print(user_data)
+    print(update.message.text)
     if update.message.location:
        text = (update.message.location.latitude,update.message.location.longitude)
     else :
@@ -289,9 +300,13 @@ def done(bot, update, user_data):
                               "{}"
                                ""
                               "*Siapkan Infaq Terbaik Anda!*".format(facts_to_str(user_data)),parse_mode=ParseMode.MARKDOWN)
-    simpan_data(userid,user_data) 
-    update.message.reply_text("Info kajianmu udah disimpan, terima kasih {}".format(username))
-    update.message.reply_text("Untuk menambahkan data baru dan kembali ke menu awal sila ketik /start")
+    try :
+     simpan_data(userid,user_data) 
+     update.message.reply_text("Info kajianmu udah disimpan, terima kasih {}".format(username))
+     update.message.reply_text("Untuk menambahkan data baru dan kembali ke menu awal sila ketik /start")
+    except Exception :
+     update.message.reply_text("maaf, data gagal disimpan ")
+     pass
 
     #update.message.reply_text("Info kajianmu gagal disimpan, mohon diulang lagi /start terima kasih {}".format(username))
     user_data.clear()
