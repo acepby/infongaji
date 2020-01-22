@@ -248,7 +248,7 @@ def detail(bot,update):
                                     "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
     if detail['latlon'] != '':
        latlon = detail['latlon'].split(',')
-       if latlon[0] and latlon[0]!= 0:
+       if latlon[0] and latlon[0]!='0':
           bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
     return DETAIL_CHOICE
 
