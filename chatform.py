@@ -103,7 +103,7 @@ def get_hari(text):
          tgl = datetime.datetime.strptime(text,'%d-%m-%Y').strftime('%Y-%m-%d')
          wd = datetime.datetime.strptime(tgl,'%Y-%m-%d').weekday()
          tanggalnya = '{},{}'.format(hari[wd],tgl)
-         return tanggalnya
+         return tanggalnya.split(',')
        except Exception:
          update.message.reply_text('tanggalnya salah')
          #raise ValueError('data tanggal salah')
@@ -158,6 +158,7 @@ def simpan_data(userid,user_data):
        materi = check_data('Materi',user_data)
        pembicara = check_data('Pembicara',user_data)
        tanggal = get_hari(check_data('Tanggal',user_data))
+       print('tanggal : ',tanggal)
        waktu = check_data('Waktu',user_data)
        tempat = check_data('Tempat',user_data)
        if check_data('Peta Lokasi',user_data):
@@ -247,7 +248,8 @@ def detail(bot,update):
                                     "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
     if detail['latlon'] != '':
        latlon = detail['latlon'].split(',')
-       bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
+       if latlon[0] and latlon[0]!= 0:
+          bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
     return DETAIL_CHOICE
 
 def regular_choice(bot, update, user_data):
