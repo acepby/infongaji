@@ -153,26 +153,17 @@ def simpan_data(userid,user_data):
     #print(user_data)
     if user_data:
        agenda = check_data('Agenda',user_data)
-       print('agenda :',agenda)
        materi = check_data('Materi',user_data)
-       print('materi :',materi)
        pembicara = check_data('Pembicara',user_data)
-       print('pembicara :',pembicara)
        tanggal = get_hari(check_data('Tanggal',user_data))
-       print('tanggal :',tanggal)
        waktu = check_data('Waktu',user_data)
-       print('waktu :',waktu)
        tempat = check_data('Tempat',user_data)
-       print('tempat :',tempat)
        #if check_data('Peta Lokasi',user_data):
        latlon = check_data('Peta Lokasi',user_data)
-       print('latlon :',latlon)
        #else :
        #    latlon ='' #[0,0] 
        host = check_data('Penyelenggara',user_data)
-       print('host :',host)
        poster = check_data('Poster', user_data)
-       print('poster :',poster)
        
        return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon,latlon,poster,user_id) 
     else :
@@ -188,7 +179,7 @@ def start(bot, update):
     greating = ("Assalamu'alaikum {}! Selamat datang di info ngajimu \n" 
                 "Bot ini adalah untuk membuat dan melihat jadwal kajian \n"
                 "Untuk menambah agenda silakan pilih *[Tambah Agenda]* \n" 
-                "Untuk melihat agenda yang sudah tersimpan pilih *[Lihat Agenda]*"
+                "Untuk melihat agenda yang sudah tersimpan pilih *[Lihat Agenda]* \n"
                 "Untuk melihat lokasi terdekat pilih *[Lokasi Terdekat]* ".format(update.message.from_user.username))
 
     update.message.reply_text(greating, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
@@ -220,9 +211,12 @@ def lokasi_terdekat(bot,update):
 
 
 def info_add(bot,update):
-    greating = "Hi {}! Adakah info kajian yang akan diumumkan? \n tambahkan agendamu dengan memilih tombol yang ada".format(update.message.from_user.username)
+    greating = ("Hi {}! Adakah info kajian yang akan diumumkan? \n " 
+                "tambahkan agendamu dengan memilih tombol yang ada \n"
+                "Pastikan *tanggal* diinputkan agar dapat disimpan dengan benar \n"
+                "Jika hanya *Poster* yang akan diunggah, pastikan input nama *agenda* dan *tanggal*".format(update.message.from_user.username))
 
-    update.message.reply_text(greating,
+    update.message.reply_text(greating,parse_mode=ParseMode.MARKDOWN,
         reply_markup=markup)
 
     return CHOOSING
@@ -320,7 +314,6 @@ def done(bot, update, user_data):
     user=update.message.from_user
     userid=user.id
     username = user.first_name
-    print(user_data)
     if 'choice' in user_data:
         del user_data['choice']
     #print(facts_to_str(user_data))
