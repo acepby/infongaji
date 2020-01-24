@@ -9,7 +9,7 @@ class DBHelper:
 		self.conn = sqlite3.connect(dbname,check_same_thread=False)
 
 	def setup(self):
-		tblstmt = "CREATE TABLE IF NOT EXISTS ngaji ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, agenda text,pembicara text,materi text,lokasi text,hari text,tanggal text,waktu text,host text,lat text,lon text,owner text )"
+		tblstmt = "CREATE TABLE IF NOT EXISTS ngaji ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, agenda text,pembicara text,materi text,lokasi text,hari text,tanggal text,waktu text,host text,lat text,lon text,poster text,owner text )"
 		itemidx = "CREATE INDEX IF NOT EXISTS ngajiIndex ON ngaji (id ASC)" 
 		ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON ngaji (owner ASC)"
 		pointidx = "CREATE INDEX IF NOT EXISTS pointIndex ON ngaji (lat,lon)"
@@ -18,9 +18,10 @@ class DBHelper:
 		self.conn.execute(ownidx)
 		self.conn.commit()
 
-	def add_info(self,agd,ust,hal,loc,hr,tgl,jam,host,lat,lon,owner):
-		stmt = "INSERT INTO ngaji VALUES(null,?,?,?,?,?,?,?,?,?,?,?)"
-		args = (agd,ust,hal,loc,hr,tgl,jam,host,lat,lon,owner)
+	def add_info(self,agd,ust,hal,loc,hr,tgl,jam,host,lat,lon,poster,owner):
+		stmt = "INSERT INTO ngaji VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?)"
+		args = (agd,ust,hal,loc,hr,tgl,jam,host,lat,lon,poster,owner)
+		print(args)
 		try :
 			self.conn.execute(stmt, args)
 			self.conn.commit()
@@ -39,7 +40,7 @@ class DBHelper:
 		return [x[0] for x in self.conn.execute(stmt, args)]
 
 	def get_detail(self,id):
-		stmt ="SELECT agenda,materi,pembicara,tanggal,waktu,lokasi,(lat||','||lon) as latlon,host FROM ngaji WHERE id = (?)"
+		stmt ="SELECT agenda,materi,pembicara,tanggal,waktu,lokasi,(lat||','||lon) as latlon,host,poster FROM ngaji WHERE id = (?)"
 		args = (id,)
 		data = self.conn.execute(stmt,args)
 		#print(data.description)

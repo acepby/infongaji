@@ -38,13 +38,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE, LOCATION_CHOICE, DETAIL_CHOICE = range(5)
+CHOOSING, TYPING_REPLY, TYPING_CHOICE, LOCATION_CHOICE, POSTER_CHOICE,DETAIL_CHOICE = range(6)
 Lokasi = KeyboardButton(text="Lokasi", request_location=True)
 
 reply_keyboard = [['Agenda', 'Materi','Pembicara'],
                   ['Tanggal', 'Waktu','Tempat'],
                   ['Peta Lokasi','Penyelenggara','Lainnya'],
-                  ['Done']]
+                  ['Poster','Done']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 def toEmoji(k,v):
@@ -110,8 +110,8 @@ def get_hari(text):
          pass
        #return  (hari[wd],tgl)
     else :
-       #return 'format salah'
-       pass
+       return None,None
+       
 
 def date2day(text):
     if text:
@@ -147,26 +147,34 @@ def kajian_text(data):
 def check_data(key,array):
     if key in array:
        return array[key]
-    else :
-       return ''
 
 def simpan_data(userid,user_data):
     user_id = userid
     #print(user_data)
     if user_data:
        agenda = check_data('Agenda',user_data)
+       print('agenda :',agenda)
        materi = check_data('Materi',user_data)
+       print('materi :',materi)
        pembicara = check_data('Pembicara',user_data)
+       print('pembicara :',pembicara)
        tanggal = get_hari(check_data('Tanggal',user_data))
-       print('tanggal : ',tanggal)
+       print('tanggal :',tanggal)
        waktu = check_data('Waktu',user_data)
+       print('waktu :',waktu)
        tempat = check_data('Tempat',user_data)
-       if check_data('Peta Lokasi',user_data):
-           latlon = check_data('Peta Lokasi',user_data)
-       else :
-           latlon ='' #[0,0] 
+       print('tempat :',tempat)
+       #if check_data('Peta Lokasi',user_data):
+       latlon = check_data('Peta Lokasi',user_data)
+       print('latlon :',latlon)
+       #else :
+       #    latlon ='' #[0,0] 
        host = check_data('Penyelenggara',user_data)
-       return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon,latlon,user_id) 
+       print('host :',host)
+       poster = check_data('Poster', user_data)
+       print('poster :',poster)
+       
+       return db.add_info(agenda,pembicara,materi,tempat,tanggal[0],tanggal[1],waktu,host,latlon,latlon,poster,user_id) 
     else :
       update.message.reply_text("Info kajianmu tidak dapat disimpan, diulang ya {}".format(username))
       update.message.reply_text("kembali ke menu awal sila ketik /start")
@@ -241,15 +249,19 @@ def lihat_info(bot,update):
 def detail(bot,update):
     query = update.callback_query
     detail = db.get_detail(query.data)
+    print('detail :',detail)
     #latlon=detail['latlon'].split(',')
     #print(latlon)
     #query.edit_message_text(text="Kajian : {}".format(detail))
     query.message.reply_text(text ="Kajian : {}"
                                     "*Siapkan INFAQ terbaik Anda!* ".format(kajian_text(detail)), parse_mode=ParseMode.MARKDOWN)
-    if detail['latlon'] != '':
+    if detail['latlon'] :
        latlon = detail['latlon'].split(',')
-       if latlon[0] and latlon[0]!='0':
+       if (latlon[0] and latlon[0])!='0':
           bot.send_location(chat_id=query.message.chat_id,latitude=latlon[0] ,longitude=latlon[1])
+    if detail['poster'] :
+       ## nunggu bot sent photo
+          bot.send_photo(chat_id=query.message.chat_id,photo=open('images/'+detail['poster'],'rb'))
     return DETAIL_CHOICE
 
 def regular_choice(bot, update, user_data):
@@ -264,6 +276,12 @@ def location_choice(bot,update,user_data):
     user_data['choice'] = text
     update.message.reply_text('Share peta lokasi kegiatan anda!')
     return LOCATION_CHOICE
+
+def poster_choice(bot,update,user_data):
+    text = update.message.text
+    user_data['choice'] = text
+    update.message.reply_text('Unggah Poster kegiatan anda (jpg/png)!')
+    return POSTER_CHOICE
  
 def custom_choice(bot, update):
     update.message.reply_text('Alright, please send me the category first, '
@@ -273,9 +291,16 @@ def custom_choice(bot, update):
 
 
 def received_information(bot, update, user_data):
-    print(update.message.text)
+    chat_id = update.message.message_id
+    print(update.message.message_id)
+    #tgl = update.message.date
+    print(user_data)
     if update.message.location:
        text = (update.message.location.latitude,update.message.location.longitude)
+    elif update.message.photo:
+       idfile = bot.getFile(update.message.photo[-1].file_id)
+       text = '{}.jpg'.format(chat_id)
+       idfile.download('images/'+text)
     else :
        text = update.message.text
     category = user_data['choice']
@@ -295,6 +320,7 @@ def done(bot, update, user_data):
     user=update.message.from_user
     userid=user.id
     username = user.first_name
+    print(user_data)
     if 'choice' in user_data:
         del user_data['choice']
     #print(facts_to_str(user_data))
@@ -344,6 +370,9 @@ def main():
                                     pass_user_data=True),
                        RegexHandler('^Lainnya$',
                                     custom_choice),
+                       RegexHandler('^Poster$',
+                                    poster_choice,
+                                    pass_user_data=True),
                        RegexHandler('^Lihat Agenda$',
                                     lihat_info),
                        RegexHandler('^Tambah Agenda$',
@@ -368,6 +397,10 @@ def main():
                                             received_information,
                                             pass_user_data=True)
                             ],
+            POSTER_CHOICE: [MessageHandler(Filters.photo,
+                                           received_information,
+                                           pass_user_data=True)
+                           ],
             DETAIL_CHOICE:[CallbackQueryHandler(detail),CommandHandler('start',start),
                            RegexHandler('^Lihat Agenda$',
                                            lihat_info),
